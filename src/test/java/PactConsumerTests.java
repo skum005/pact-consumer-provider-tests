@@ -7,11 +7,14 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Description;
 import io.qameta.allure.Story;
-import io.restassured.RestAssured;
+import io.restassured.http.Method;
 import io.restassured.response.Response;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Using Junit5 Pact Consumer Library
@@ -19,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 @PactConsumerTest
 @PactTestFor(providerName = "ArticlesProvider", hostInterface="localhost")
-public class PactConsumerTests {
+public class PactConsumerTests extends BaseTest {
 
     @Pact(provider="ArticlesProvider", consumer="test_consumer")
     public V4Pact pactForTestConsumer_SingleInteraction(PactDslWithProvider builder) {
@@ -62,9 +65,8 @@ public class PactConsumerTests {
     @Story("GET Endpoint Interactions")
     @Description("Create PACT file for \"pactConfigForSomeEndpoint\" and run the tests against the same")
     public void consumerTest1(MockServer mockServer) {
-        RestAssured.baseURI = mockServer.getUrl();
         Allure.attachment("Mock Server URL - test 1", mockServer.getUrl());
-        Response response = RestAssured.given().get("/articles.json");
+        Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/articles.json"), Method.GET);
         Assertions.assertEquals(200, response.getStatusCode());
     }
 
@@ -73,11 +75,12 @@ public class PactConsumerTests {
     @Story("POST Endpoint Interactions")
     @Description("Create PACT file for \"pactConfigForSomeEndpoint\" and run the tests against the same")
     public void consumerTest2(MockServer mockServer) {
-        RestAssured.baseURI = mockServer.getUrl();
-        JSONObject jsonObj = new JSONObject()
+        JSONObject requestBody = new JSONObject()
                 .put("name","harry");
+        Map<String, String> headers = new HashMap<String, String> (
+                Map.of("Content-Type","application/json"));
         Allure.attachment("Mock Server URL - test 2", mockServer.getUrl());
-        Response response = RestAssured.given().contentType("application/json").body(jsonObj.toString()).when().post("/hello");
+        Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/hello", headers, null, requestBody.toString()), Method.POST);
         Assertions.assertEquals(201, response.getStatusCode());
     }
 
