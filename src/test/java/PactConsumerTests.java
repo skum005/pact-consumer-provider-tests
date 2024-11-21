@@ -1,4 +1,6 @@
 import au.com.dius.pact.consumer.MockServer;
+import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTest;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
@@ -15,6 +17,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonArray;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 
 /**
  * Using Junit5 Pact Consumer Library
@@ -34,7 +39,7 @@ public class PactConsumerTests extends BaseTest {
                 .method("GET")
                 .willRespondWith()
                 .status(200)
-                .body("{\"responsetest\": true}").toPact(V4Pact.class);
+                .body(pactDslJSONBodyLamda_JsonInsideArray()).toPact(V4Pact.class);
     }
 
     @Pact(provider="ArticlesProvider", consumer="test_consumer")
@@ -44,19 +49,19 @@ public class PactConsumerTests extends BaseTest {
                 .uponReceiving("Post request - interaction 1")
                 .path("/hello")
                 //interaction 1
-                .body("{\"name\": \"harry\"}")
+                .body(pactDslJSONBodyLamda_ArrayInsideJson())
                 .method("POST")
                 .willRespondWith()
                 .status(201)
-                .body("{\"responsetest\": true}")
+                .body(pactDslJSONBodyLamda_ArrayInsideJson())
                 //interaction 2
                 .uponReceiving("post request - interaction 2")
                 .path("/hello")
                 .method("POST")
-                .body("{\"name\": \"harry\"}")
+                .body(pactDslJSONBodyLamda_ArrayInsideJson())
                 .willRespondWith()
                 .status(201)
-                .body("{\"responsetest\": true}")
+                .body(pactDslJSONBodyLamda_ArrayInsideJson())
                 .toPact(V4Pact.class);
     }
 
@@ -77,11 +82,51 @@ public class PactConsumerTests extends BaseTest {
     public void consumerTest2(MockServer mockServer) {
         JSONObject requestBody = new JSONObject()
                 .put("name","harry");
+        String reqBody = "{\n" +
+                "  \"name\": \"Santosh\",\n" +
+                "  \"age\": 37,\n" +
+                "  \"isRetired\": false,\n" +
+                "  \"address\": [\"Flat 100\"]\n" +
+                "}\n";
         Map<String, String> headers = new HashMap<String, String> (
-                Map.of("Content-Type","application/json"));
+                Map.of("Content-Type","application/json; charset=UTF-8"));
         Allure.attachment("Mock Server URL - test 2", mockServer.getUrl());
-        Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/hello", headers, null, requestBody.toString()), Method.POST);
+        Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/hello", headers, null, reqBody), Method.POST);
         Assertions.assertEquals(201, response.getStatusCode());
+    }
+
+    // this is not working. Throwing a null pointer exception
+    public DslPart pactDslJsonBody() {
+        return new PactDslJsonBody()
+                .stringType("name", "Santosh")
+                .integerType("age", 37)
+                .booleanType("isRetired", false)
+                .array("address")
+                .stringValue("Flat 100")
+                .stringValue("Main Road")
+                .closeArray().closeObject();
+    }
+
+    public DslPart pactDslJSONBodyLamda_ArrayInsideJson() {
+        // PACT body - lamda. JSON array inside a JSON object
+        return newJsonBody(b -> {
+            b.stringType("name", "Santosh");
+            b.integerType("age", 37);
+            b.booleanType("isRetired", false);
+            b.array("address", (a -> a.stringValue("Flat 100")));
+        }).build();
+    }
+
+    public DslPart pactDslJSONBodyLamda_JsonInsideArray() {
+        // PACT body - lamda. JSON array inside a JSON object
+        return newJsonArray(array -> {
+            array.object(obj -> {
+                obj.stringType("name", "Santosh");
+                obj.integerType("age", 37);
+                obj.booleanType("isRetired", false);
+                obj.array("address", (a -> a.stringValue("Flat 100")));
+            });
+        }).build();
     }
 
     // to generate allure report use the below command:
