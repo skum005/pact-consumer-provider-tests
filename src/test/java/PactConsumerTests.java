@@ -1,6 +1,4 @@
 import au.com.dius.pact.consumer.MockServer;
-import au.com.dius.pact.consumer.dsl.DslPart;
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTest;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
@@ -17,9 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonArray;
-import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 
 /**
  * Using Junit5 Pact Consumer Library
@@ -93,40 +88,6 @@ public class PactConsumerTests extends BaseTest {
         Allure.attachment("Mock Server URL - test 2", mockServer.getUrl());
         Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/hello", headers, null, reqBody), Method.POST);
         Assertions.assertEquals(201, response.getStatusCode());
-    }
-
-    // this is not working. Throwing a null pointer exception
-    public DslPart pactDslJsonBody() {
-        return new PactDslJsonBody()
-                .stringType("name", "Santosh")
-                .integerType("age", 37)
-                .booleanType("isRetired", false)
-                .array("address")
-                .stringValue("Flat 100")
-                .stringValue("Main Road")
-                .closeArray().closeObject();
-    }
-
-    public DslPart pactDslJSONBodyLamda_ArrayInsideJson() {
-        // PACT body - lamda. JSON array inside a JSON object
-        return newJsonBody(b -> {
-            b.stringType("name", "Santosh");
-            b.integerType("age", 37);
-            b.booleanType("isRetired", false);
-            b.array("address", (a -> a.stringValue("Flat 100")));
-        }).build();
-    }
-
-    public DslPart pactDslJSONBodyLamda_JsonInsideArray() {
-        // PACT body - lamda. JSON array inside a JSON object
-        return newJsonArray(array -> {
-            array.object(obj -> {
-                obj.stringType("name", "Santosh");
-                obj.integerType("age", 37);
-                obj.booleanType("isRetired", false);
-                obj.array("address", (a -> a.stringValue("Flat 100")));
-            });
-        }).build();
     }
 
     // to generate allure report use the below command:
