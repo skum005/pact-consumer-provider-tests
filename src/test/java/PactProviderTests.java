@@ -3,6 +3,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -19,6 +20,7 @@ public class PactProviderTests extends BaseTest {
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
+    @Tag("provider-tests")
     void pactVerificationTestTemplate(PactVerificationContext context) {
         mockServerCreator.createMockServer();
         mockServerCreator.createGetStub("/articles.json", pactDslJSONBodyLamda_JsonInsideArray().toString());
@@ -27,4 +29,5 @@ public class PactProviderTests extends BaseTest {
         mockServerCreator.stopMockServer();
     }
 
+    // to run pact consumer tests use the command mvn test -Dgroups=provider-tests
 }

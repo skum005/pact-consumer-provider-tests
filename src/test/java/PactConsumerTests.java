@@ -11,6 +11,7 @@ import io.restassured.http.Method;
 import io.restassured.response.Response;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -64,6 +65,7 @@ public class PactConsumerTests extends BaseTest {
     @PactTestFor(pactMethod = "pactForTestConsumer_SingleInteraction")
     @Story("GET Endpoint Interactions")
     @Description("Create PACT file for \"pactConfigForSomeEndpoint\" and run the tests against the same")
+    @Tag("consumer-tests")
     public void consumerTest1(MockServer mockServer) {
         Allure.attachment("Mock Server URL - test 1", mockServer.getUrl());
         Response response = restClient.submitRequest(restClient.generateRequestSpec(mockServer.getUrl(), "/articles.json"), Method.GET);
@@ -74,6 +76,7 @@ public class PactConsumerTests extends BaseTest {
     @PactTestFor(pactMethod = "pactForTestConsumer_MultipleInteractions")
     @Story("POST Endpoint Interactions")
     @Description("Create PACT file for \"pactConfigForSomeEndpoint\" and run the tests against the same")
+    @Tag("consumer-tests")
     public void consumerTest2(MockServer mockServer) {
         JSONObject requestBody = new JSONObject()
                 .put("name","harry");
@@ -92,4 +95,5 @@ public class PactConsumerTests extends BaseTest {
 
     // to generate allure report use the below command:
     // allure generate allure-results --clean -o allure-report
+    // to run pact consumer tests use the command mvn test -Dgroups=consumer-tests
 }
