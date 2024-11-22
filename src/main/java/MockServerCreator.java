@@ -12,7 +12,7 @@ public class MockServerCreator {
 
     private WireMockServer wireMockServer;
     public static final String MOCK_SERVER_HOST = "localhost";
-    public static final String MOCK_SERVER_PORT = "8080";
+    public static final String MOCK_SERVER_PORT = "9999";
     public static final String SCHEME = "http";
     public static final String MOCK_SERVER = SCHEME + "://" + MOCK_SERVER_HOST + ":" + MOCK_SERVER_PORT;
 

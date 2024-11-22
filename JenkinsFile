@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    parameters {
+            choice(name: 'TEST_TYPE', choices: ['Consumer', 'Provider'], description: 'Choose Test Type to run')
+    }
+
+    stages {
+
+        stage('Check Allure Installation') {
+                steps {
+                    // Check if allure command is available
+                    sh 'allure --version'
+                }
+            }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'git@github.com:skum005/PactContractConsumerTests.git'
+            }
+
+        }
+
+        stage('Cucumber tests') {
+            steps {
+                script {
+                    if(params.TEST_TYPE == 'Consumer') {
+                        sh returnStatus: true, script: 'mvn test -Dgroups=consumer-tests'
+                    }
+                    else {
+                        sh returnStatus: true, script: 'mvn test -Dgroups=provider-tests'
+                    }
+                }
+            }
+            post {
+                always {
+                    allure includeProperties:
+                     false,
+                     jdk: '',
+                     results: [[path: 'allure-results']]
+                }
+            }
+        }
+    }
+
+}
